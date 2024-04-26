@@ -136,6 +136,8 @@ def automato_data(entrada):
                     token += char
                 elif char == ".":
                     estado = "Q28"
+                elif char.isdigit():
+                    estado = "Q59"
                      
                 
                 
@@ -334,21 +336,47 @@ def automato_data(entrada):
                     estado = "QComentario><" 
                 else:
                     estado = "Q79"
-            
+            #cases do INT, possivel Endereço e possivel Floar
+            case "Q59":
+                char = entrada.read()
+                if char.isdigit():
+                    estado = "Q36" #continuação para inteiro
+                elif char == ".":
+                    estado = "Q32" #caminho para float
+                elif char == "X":
+                    estado = "Q55" #caminho para endereço
+                else:
+                    estado = "QInteiro" #estado de aceitação do inteiro            
+            #cases do floar
             case "Q28":
                 if entrada.read(1).isdigit():
                     estado = "Q33"
-                
                 else:
                     print("Error")
             case "Q33":
-                if entrada.read(1) == "e":
+                char = entrada.read(1)
+                if  char == "e":
                     estado = "Q35"
-                
+
+                elif char.isdigit():
+                    estado = "Q33"
                 else:
-                    print("error")
+                    estado = "QFLoat"
 
-
+            case "Q35":
+                char = entrada.read(1)
+                if char == "-":
+                    estado = "Q34"
+                elif char.isdigit():
+                    estado = "Q13"
+                
+            case "Q13":
+                char = entrada.read(1)
+                if char.isdigit():
+                    estado = "Q13"
+                else:
+                    estado = "QFloat"
+            
 
             case "QComentario><":
                 print(token)
@@ -379,12 +407,6 @@ def automato_data(entrada):
         if char =="" or char =="/n":
             estado = "Q0"
         
-        def caso_QPalavra(token, linha, coluna, ListadeTokens): #função para quando terminarmos de ler uma palavra
-            gerar_relatorio(token,linha ,coluna , ListadeTokens)
-
-        def caso_QVariaveis(token, linha, coluna, ListadeTokens):  #função para quando terminarmos de ler uma variavel
-            gerar_relatorio(token,linha ,coluna , ListadeTokens)
-
             
    
     return f"Fim da leitura"  # Se chegamos ao final da entrada e não estamos no estado de aceitação, retorna False
