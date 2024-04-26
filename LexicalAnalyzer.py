@@ -32,8 +32,8 @@ lexemas = {
     # Adicione outros mapeamentos conforme necessário
 }
 
-def verifica_comentario(token):
-    padrao = re.compile(r'^>>>(.*?)<<<$')
+def verifica_comentarioComMaiorEMenorDoQue(token):
+    padrao = re.compile(r'^>>>.*?<<<$')
     return bool(padrao.match(token))
 
 def verifica_Comentario(token):
@@ -52,7 +52,7 @@ def gerar_relatorio(token, linha, coluna, ListadeTokens):
 
     if verifica_padrao(token):
         lexema_str = "TOKEN_NOME_DE_VARIAVEL"
-    elif verifica_Comentario(token):
+    elif verifica_comentarioComMaiorEMenorDoQue(token):
         lexema_str = "TOKEN_COMENTARIO>>><<<"
     elif verifica_Comentario(token):
         lexema_str = "TOKEN_COMENTARIO"
@@ -65,7 +65,7 @@ def gerar_relatorio(token, linha, coluna, ListadeTokens):
         relatorio.write(f"| {linha:<4} | {coluna:<4} | {token:<25} | {lexema_str:<25} |\n")
         relatorio.write(f"+------+------+---------------------------+---------------------------+\n")
 
-    return "Relatório gerado com sucesso."
+    return
 
 
 def automato_data(entrada):
@@ -88,7 +88,7 @@ def automato_data(entrada):
 
         relatorio.write(f"TOKENS RECONHECIDOS:\n\n")
         relatorio.write(f"+------+------+---------------------------+---------------------------+\n")
-        relatorio.write(f"| LIN  | COL  | {'TOKEN':<25} | {'LEXEMA':<25} |\n")
+        relatorio.write(f"| LIN  | COL  | {'LEXEMA':<25} | {'TOKEN':<25} |\n")
         relatorio.write(f"+------+------+---------------------------+---------------------------+\n")
 
     
@@ -134,6 +134,8 @@ def automato_data(entrada):
                 elif char == "#":
                     estado = "QComentario"
                     token += char
+                elif char == ".":
+                    estado = "Q28"
                      
                 
                 
@@ -159,15 +161,16 @@ def automato_data(entrada):
                     gerar_relatorio("&",linha ,coluna , ListadeTokens)
                     estado = "Q0"
             case "Q8":
-                if char == ">" and entrada.read(1) !="=":
+                char1 = entrada.read(1)
+                if char == ">" and char1 ==">":
+                    token += char
+                    estado = "Q78"
+                elif char == ">" and char1 !="=":
                     token += char
                     entrada.seek(entrada.tell()-1)
                     gerar_relatorio(">",linha ,coluna , ListadeTokens)
                     estado = "Q0"
                     token = ""
-                elif char == ">" and entrada.read(1) ==">":
-                    token += char
-                    estado = "Q78"
                 else:
                     token += char
                     estado = "Q11"
@@ -300,6 +303,7 @@ def automato_data(entrada):
             case "Q78":
                 token +=">"
                 char = entrada.read(1)
+                coluna += 1
                 if char == ">":
                     coluna += 1
                     token += ">"
@@ -309,6 +313,7 @@ def automato_data(entrada):
 
             case "Q79":
                 char = entrada.read(1)
+                coluna += 1
                 token += char
                 if char == "<":
                     estado = "Q76"
@@ -316,17 +321,40 @@ def automato_data(entrada):
                     estado = "Q79"
             case "Q76":
                 char = entrada.read(1)
+                coluna += 1
+                token += char
                 if char == "<":
-                    token += char
                     estado = "Q80"
                 else:
-                    print("error")
+                    estado = "Q79"
             case "Q80":
                 char = entrada.read(1)
                 if char == "<":
-                    token += char  
+                    token += char 
+                    estado = "QComentario><" 
+                else:
+                    estado = "Q79"
             
+            case "Q28":
+                if entrada.read(1).isdigit():
+                    estado = "Q33"
+                
+                else:
+                    print("Error")
+            case "Q33":
+                if entrada.read(1) == "e":
+                    estado = "Q35"
+                
+                else:
+                    print("error")
 
+
+
+            case "QComentario><":
+                print(token)
+                gerar_relatorio(token,linha ,coluna , ListadeTokens)
+                estado = "Q0"
+                token = ""
 
 
             case "QPalavra": #estado de aceitacão de cadeia
