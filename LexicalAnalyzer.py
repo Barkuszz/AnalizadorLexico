@@ -2,6 +2,34 @@ import re
 from datetime import datetime
 from collections import defaultdict
 # Dicionário que mapeia tokens aos seus lexemas correspondentes
+
+def ler_conteudo_arquivo(nome_arquivo):
+    with open(nome_arquivo, 'r') as arquivo:
+        conteudo = arquivo.read()
+    return conteudo
+
+conteudo_arquivo = ler_conteudo_arquivo("Texto.txt")
+
+def tratamento_Erros(conteudo_arquivo, linha, coluna, error):
+    linhas = conteudo_arquivo.split('\n')
+
+    # Verificar se a linha de erro está dentro do intervalo de linhas do arquivo
+    if 0 < linha <= len(linhas):
+        linha_atual = linhas[linha - 1]
+
+        # Verificar se a coluna de erro está dentro do intervalo de colunas da linha atual
+        if 0 < coluna <= len(linha_atual):
+            mensagem_erro = linha_atual[:coluna-1] + '^' + linha_atual[coluna-1:]
+            mensagem_erro += f"\n{'-' * (coluna - 1)}^\n"
+            mensagem_erro += f"Erro na linha {linha}, coluna {coluna}: {error}"
+            return mensagem_erro
+        else:
+            return "Erro: coluna especificada está fora do intervalo."
+    else:
+        return "Erro: linha especificada está fora do intervalo."
+
+   
+
 lexemas = {
     "|": "TOKEN_OR",
     "-": "TOKEN_MENOS",
@@ -29,8 +57,6 @@ lexemas = {
     ":": "TOKEN_DOIS_PONTOS",
     "#": "TOKEN_COMENTARIO",
 
-    # Lista de palavras reservadas da linguagem: rotina, fim_rotina, se, senao, imprima, leia, para, enquanto.
-    # Adicione outros mapeamentos conforme necessário
 }
 
 
@@ -117,8 +143,8 @@ def gerar_relatorio(token, linha, coluna, ListadeTokens):
          lexema_str = "TOKEN_PALAVRA"
     else:
         lexema_str = lexemas.get(token, "Lexema nao definido")
-    
-    atualizar_contagem(lexema_str)
+    if lexema_str != "Lexema nao definido":
+        atualizar_contagem(lexema_str)
     with open(ListadeTokens, 'a') as relatorio:
         relatorio.write(f"| {linha:<4} | {coluna:<4} | {token:<25} | {lexema_str:<25} |\n")
         relatorio.write(f"+------+------+---------------------------+---------------------------+\n")
@@ -131,8 +157,6 @@ def automato_data(entrada):
     char = ""
     # Começamos no estado Q0
     estado = "Q0" 
-    i = 0
-    temp = ""
     linha = 1
     coluna = 1
     ListadeTokens = 'ListadeTokens.txt'
@@ -307,8 +331,10 @@ def automato_data(entrada):
             
             case "Q62": 
                 char = entrada.read(1)
-                if temp == "\n":
-                    print("error quebra de linha")
+                if char == "\n":
+                    print(tratamento_Erros(conteudo_arquivo,linha, coluna, "Cadeia não fechada"))
+                    token = ""
+                    estado = "Q0"
                 elif char !='"':
                     coluna +=1
                     estado = "Q62"
