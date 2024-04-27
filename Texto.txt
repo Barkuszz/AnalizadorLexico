@@ -1,2 +1,8 @@
-"12/12/201912_12_
-202412_12_2024<=>=<=" 
+# Ex-01-correto.cic
+
+rotina
+    imprima("Digite um nro")
+    leia(nUmErO)
+    nUm<==nUm<>123
+    imprima(123.e10)
+fim_rotina
