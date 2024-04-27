@@ -1,10 +1,13 @@
-[   1] # Ex-01-correto.cic
-[   2] 
-[   3] rotina
-[   4]     imprima("Digite um nro")
-[   5]     leia(nUmErO)
-[   6]     nUm<==nUm<>123
-[   7]     imprima(123.e10)
-       ----------------^
-Erro: Cadeia incompleta Float na linha 7, coluna 17
-[   8] fim_rotina
+[   1] >>> Ex-03-incorreto.cic 
+[   2] <<<
+[   3] 
+[   4] rotina
+[   5]    leia(<a>)
+       ---------^
+Erro: Cadeia De palavras não completa na linha 5, coluna 10
+[   6]    enquanto nUm <= .09e-123:
+       -------------------^
+Erro: Cadeia incompleta float na linha 6, coluna 20
+[   7]       imprima(99_12_1999)
+[   8]    imprima("Fim programa") 	
+[   9] fim_rotina

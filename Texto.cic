@@ -1,0 +1,9 @@
+>>> Ex-03-incorreto.cic 
+<<<
+
+rotina
+   leia(<a>)
+   enquanto nUm <= .09e-123:
+      imprima(99_12_1999)
+   imprima("Fim programa") 	
+fim_rotina

@@ -90,7 +90,7 @@ def verifica_Float(token):
     return bool(padrao.match(token))
 
 def verifica_comentarioComMaiorEMenorDoQue(token):
-    padrao = re.compile(r'^>>>.*?<<<$')
+    padrao = re.compile(r'^>>>(.|\n)*?<<<$')
     return bool(padrao.match(token))
 
 def verifica_Comentario(token):
@@ -119,9 +119,13 @@ def escrever_contagem_arquivo(nome_arquivo):
         arquivo.write("|            Token            |   Usos       |\n")
         arquivo.write("+-----------------------------+--------------+\n")
 
-        for token, quantidade in contagem_tokens.items():
+        # Ordena os tokens por ordem de quantidade de uso
+        tokens_ordenados = sorted(contagem_tokens.items(), key=lambda x: x[1], reverse=True)
+
+        for token, quantidade in tokens_ordenados:
             arquivo.write(f"| {token:<27} | {quantidade:>12} |\n")
             arquivo.write("+-----------------------------+--------------+\n")
+
 
 
 def gerar_relatorio(token, linha, coluna, ListadeTokens):
@@ -144,7 +148,7 @@ def gerar_relatorio(token, linha, coluna, ListadeTokens):
         lexema_str = "TOKEN_COMENTARIO>>><<<"
     elif verifica_Comentario(token):
         lexema_str = "TOKEN_COMENTARIO"
-    elif verifica_palavra(token):
+    elif verifica_palavra(token) and token not in lexemas:
          lexema_str = "TOKEN_PALAVRA"
     else:
         lexema_str = lexemas.get(token, "Lexema nao definido")
@@ -341,7 +345,7 @@ def automato_data(entrada):
             case "Q26":
                     coluna += 1
                     token += "="
-                    gerar_relatorio(token,linha ,coluna , ListadeTokens)
+                    
                     escrever_contagem_arquivo("Tokens_Qtd.txt")
                     token = ""
                     estado = "Q0"
@@ -351,6 +355,8 @@ def automato_data(entrada):
                 coluna +=1
                 
                 if char == "\n": 
+                    gerar_relatorio(token,linha ,coluna , ListadeTokens)
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
                     dicionario_erros.append({"erro":"Quebra de Linha","linha":linha,"coluna":coluna+1})
                     token = ""
                     estado = "Q0"
@@ -359,7 +365,8 @@ def automato_data(entrada):
                     estado = "Q62"
                 elif char == '"':
                     token += char
-                    estado = "QCadeia"    
+                    estado = "QCadeia"
+
                 
             case "QCadeia": #estado de aceitacão de cadeia
                 gerar_relatorio(token,linha ,coluna , ListadeTokens)
@@ -431,16 +438,20 @@ def automato_data(entrada):
                     estado = "QVariavel"
 
             case "Q68":
-                gerar_relatorio("(",linha ,coluna , ListadeTokens)
-                estado = "Q0"     
+                token += char
+                gerar_relatorio(token,linha ,coluna , ListadeTokens)
+                estado = "Q0" 
+                token = ""    
                 escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q70":
                 gerar_relatorio(")",linha ,coluna , ListadeTokens)
                 estado = "Q0"
+                token = "" 
                 escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q72":
                 gerar_relatorio(":",linha ,coluna , ListadeTokens)
                 estado = "Q0"
+                token = "" 
                 escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "QComentario":
                 char = entrada.read(1)
@@ -472,6 +483,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Sequencia quebrada","linha":linha,"coluna":coluna})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
 
             case "Q79":
                 char = entrada.read(1)
@@ -480,10 +492,6 @@ def automato_data(entrada):
                 
                 if char == "<":
                     estado = "Q76"
-                elif char =="\n":
-                    dicionario_erros.append({"erro":"Quebra de linha","linha":linha,"coluna":coluna})
-                    estado = "Q0"
-                    token = ""
                 else:
                     estado = "Q79"
             case "Q76":
@@ -498,11 +506,13 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Quebra de linha","linha":linha,"coluna":coluna})
                     token = ""
                     estado = "Q0"
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
                 elif char ==" ":
                     gerar_relatorio(token,linha ,coluna , ListadeTokens)
                     dicionario_erros.append({"erro":"Cadeia inconpleta","linha":linha,"coluna":coluna})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
                 else:
                     estado = "Q79"
             case "Q80":
@@ -517,11 +527,13 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Quebra de linha","linha":linha,"coluna":coluna})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
                 elif char ==" ":
                     gerar_relatorio(token,linha ,coluna , ListadeTokens)
                     dicionario_erros.append({"erro":"Cadeia inconpleta","linha":linha,"coluna":coluna})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
                 else:
                     estado = "Q79"
             #cases do INT, possivel Endereço e possivel Floar
@@ -558,7 +570,6 @@ def automato_data(entrada):
                     estado = "Q32" #caminho float
                     token += char
                 else:
-                    print(linha,coluna)
                     char = entrada.seek(entrada.tell()-1)
                     coluna -=1
                     estado = "QInteiro" #aceita Int
@@ -577,6 +588,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q44":
                 char = entrada.read(1)
                 coluna += 1
@@ -589,6 +601,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             
             case "Q39":
                 char = entrada.read(1)
@@ -598,13 +611,13 @@ def automato_data(entrada):
                     token += char
                     estado = "Q40"
                 else:
-                    print(linha,coluna)
                     char = entrada.seek(entrada.tell()-1)
                     coluna -=1
                     gerar_relatorio(token,linha ,coluna , ListadeTokens)
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q45":
                 char = entrada.read(1)
                 coluna += 1
@@ -617,6 +630,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q40":
                 char = entrada.read(1)
                 coluna += 1
@@ -632,6 +646,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     token = ""
                     estado = "Q0"
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q46":
                 char = entrada.read(1)
                 coluna += 1
@@ -644,6 +659,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q41":
                 char = entrada.read(1)
                 coluna += 1
@@ -656,6 +672,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q47":
                 char = entrada.read(1)
                 coluna += 1
@@ -668,6 +685,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q42":
                 char = entrada.read(1)
                 coluna += 1
@@ -680,6 +698,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q48":
                 char = entrada.read(1)
                 coluna += 1
@@ -692,6 +711,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q43": 
                 char = entrada.read(1)
                 coluna += 1
@@ -704,6 +724,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q49":
                 char = entrada.read(1)
                 coluna += 1
@@ -716,6 +737,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q52":
                 char = entrada.read(1)
                 coluna += 1
@@ -728,6 +750,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q50":
                 char = entrada.read(1)
                 coluna += 1
@@ -740,6 +763,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de data","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q51":
                 estado = "QDataBarra"      
             case "Q53": 
@@ -749,7 +773,7 @@ def automato_data(entrada):
                 char = entrada.read(1)
                 coluna += 1
                 
-                if char == "X":
+                if char == "x":
                     estado = "Q55"
                     token += char
                 else:
@@ -757,6 +781,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Formatacao de Endereco","linha":linha,"coluna":coluna+1})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
 
             case "Q55":
                 char = entrada.read(1)
@@ -801,6 +826,7 @@ def automato_data(entrada):
                 gerar_relatorio(token,linha ,coluna , ListadeTokens)
                 estado = "Q0"
                 token = ""
+                escrever_contagem_arquivo("Tokens_Qtd.txt")
 
             case "Q32": #saindo de int para caminho do Float
                 char = entrada.read(1)
@@ -820,13 +846,14 @@ def automato_data(entrada):
                 coluna += 1
                 token += char
                 
-                if char.isdigit():
+                if char.isdigit() and char !="0":
                     estado = "Q33"
                 else:
                     gerar_relatorio(token,linha ,coluna , ListadeTokens)
                     dicionario_erros.append({"erro":"Cadeia incompleta float","linha":linha,"coluna":coluna})
                     estado = "Q0"
                     token = ""
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q33":
                 char = entrada.read(1)
                 coluna += 1
@@ -859,6 +886,7 @@ def automato_data(entrada):
                     dicionario_erros.append({"erro":"Cadeia incompleta float","linha":linha,"coluna":coluna+1})
                     token = ""
                     estado = "Q0"
+                    escrever_contagem_arquivo("Tokens_Qtd.txt")
             case "Q34":
                 char = entrada.read(1)
                 coluna += 1
@@ -937,12 +965,12 @@ def automato_data(entrada):
 
 
         
-    print_errors("Texto.txt",dicionario_erros)        
+    print_errors("Texto.cic",dicionario_erros)        
 
 
 # Exemplo de uso:
 #entrada1 = "12/31/2023 "S
 
-with open("Texto.txt", 'r') as arquivo:
+with open("Texto.cic", 'r') as arquivo:
     automato_data(arquivo)
 
