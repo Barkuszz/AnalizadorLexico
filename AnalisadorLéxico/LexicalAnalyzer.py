@@ -160,10 +160,10 @@ def gerar_relatorio(token, linha, coluna, ListadeTokens):
 
     return
 
+#função que simula o automato
 
 def automato_data(entrada):
     dicionario_erros = []
-
     token = ""
     char = ""
     # Começamos no estado Q0
@@ -185,7 +185,6 @@ def automato_data(entrada):
         relatorio.write(f"| LIN  | COL  | {'LEXEMA':<25} | {'TOKEN':<25} |\n")
         relatorio.write(f"+------+------+---------------------------+---------------------------+\n")
 
-    
     while True:
         match estado:
             case "Q0":

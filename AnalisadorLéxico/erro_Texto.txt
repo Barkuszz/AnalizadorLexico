@@ -1,0 +1,5 @@
+[   1] aAa<==1x200+13_99_00_00+34-1.e-10
+       ---------------------^
+Erro: Formatacao de data na linha 1, coluna 22
+       -----------------------------^
+Erro: Cadeia incompleta Float na linha 1, coluna 30

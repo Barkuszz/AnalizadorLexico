@@ -1,0 +1,25 @@
+# Ex-01-correto.cic
+rotina
+imprima("Digite um nro")
+leia(nUmErO)
+nUm <== nUm <> 123
+imprima(123.e10)
+fim_rotina
+
+# Ex-02-incorreto.cic
+rotina
+imprima("Digite um
+nro")
+NuM <== 11/11/2000 + 11_11_20
+imprima(Ax23423)
+fim_rotina
+
+
+<<< Ex-03-incorreto.cic
+>>>
+rotina
+leia(<a>)
+enquanto nUm <= .09e-123:
+imprima(99_12_1999)
+imprima("Fim programa")
+fim_rotina
